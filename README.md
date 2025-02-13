@@ -2,9 +2,10 @@
 
 Este proyecto es parte de un tutorial en **YouTube** donde enseño a manejar formularios con **React Hook Form**, **TypeScript** y **Zod** para validación. El proyecto está basado en un **dashboard** que contiene varios formularios dinámicos y reutilizables, proporcionando una guía completa sobre cómo manejar formularios de manera eficiente en React.
 
-## 🔗 Tutorial en YouTube
 
-¡No olvides seguir el tutorial en mi canal para ver el paso a paso! [Ver tutorial](https://youtube.com/tu-canal)
+![Primer Formulario](/public/checkout_form.png)
+![Segundo Formulario](/public/campaign_form.png)
+
 
 ---
 
