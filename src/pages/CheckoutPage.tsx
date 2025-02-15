@@ -1,28 +1,71 @@
-import { FaCreditCard, FaDhl, FaFedex } from 'react-icons/fa';
-import { useState } from 'react';
-import { BsBank2 } from 'react-icons/bs';
-import { InfoPayment, ProductCard } from '../components/checkout';
+import {
+	InfoPayment,
+	InputCheckout,
+	ProductCard,
+	RadioInputDelivery,
+	RadioInputPaymentMethod,
+} from '../components/checkout';
+import { useForm } from 'react-hook-form';
+import {
+	CheckoutFormValues,
+	checkoutSchema,
+} from '../schemas/checkout.schema';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useEffect } from 'react';
 
 export const CheckoutPage = () => {
-	const [delivery, setDelivery] = useState('fast');
-	const [methodPayment, setMethodPayment] = useState('card');
-	const [expirationDate, setExpirationDate] = useState('');
+	const {
+		register,
+		handleSubmit,
+		formState: { errors },
+		watch,
+		unregister,
+		reset,
+	} = useForm<CheckoutFormValues>({
+		defaultValues: {
+			delivery: 'express',
+			paymentMethod: 'card',
+		},
+		resolver: zodResolver(checkoutSchema),
+	});
 
-	const handleExpirationInput = (
-		e: React.ChangeEvent<HTMLInputElement>
-	) => {
-		let value = e.target.value.replace(/\D/g, ''); // Solo permitimos números
-		if (value.length > 2) {
-			value = value.slice(0, 2) + '/' + value.slice(2, 4);
+	const delivery = watch('delivery');
+	const methodPayment = watch('paymentMethod');
+
+	useEffect(() => {
+		if (methodPayment === 'card') {
+			unregister('bank');
+		} else {
+			unregister('card');
 		}
-		if (value.length > 5) {
-			value = value.slice(0, 5); // Limitar a 'MM/YY'
+	}, [methodPayment, unregister]);
+
+	const onSubmit = handleSubmit(data => {
+		if (data.paymentMethod === 'card') {
+			data.bank = undefined;
 		}
-		setExpirationDate(value);
-	};
+
+		if (data.paymentMethod === 'bank') {
+			data.card = undefined;
+		}
+
+		const result = checkoutSchema.safeParse(data);
+
+		if (!result.success) {
+			console.log('Errores de validación', result.error.format());
+			return;
+		}
+
+		alert('Pago realizado correctamente');
+		console.log(data);
+		reset();
+	});
 
 	return (
-		<form className='flex flex-col gap-4 md:flex-row'>
+		<form
+			className='flex flex-col gap-4 md:flex-row'
+			onSubmit={onSubmit}
+		>
 			<section className='flex flex-col gap-3 flex-1'>
 				<h2 className='font-semibold'>Información de Producto</h2>
 
@@ -31,99 +74,17 @@ export const CheckoutPage = () => {
 				<h2 className='font-semibold'>Información de Entrega</h2>
 
 				<div className='flex flex-col gap-4'>
-					<label
-						className={`flex gap-4 items- center bg-white rounded-xl p-3 cursor-pointer border ${
-							delivery === 'fast'
-								? 'border-black'
-								: 'border-transparent'
-						}`}
-					>
-						<div className='flex '>
-							<input
-								name='free'
-								type='radio'
-								className='hidden'
-								onChange={() => {
-									setDelivery('fast');
-								}}
-								value={delivery}
-								checked={delivery === 'fast'}
-							/>
+					<RadioInputDelivery
+						register={register}
+						value='express'
+						delivery={delivery}
+					/>
 
-							<span
-								className={`h-4 w-4 rounded-full border  flex items-center justify-center  ${
-									delivery === 'fast'
-										? 'bg-black border-transparent'
-										: 'bg-white border-stone-300'
-								}`}
-							>
-								{delivery === 'fast' && (
-									<span className='h-1.5 w-1.5 rounded-full bg-white'></span>
-								)}
-							</span>
-						</div>
-
-						<div className='space-y-2'>
-							<p className='font-semibold text-sm'>
-								$4.99 - Entrega rápida
-								<span className='bg-emerald-200 text-emerald-700 text-xs rounded-full px-2 py-1 font-medium ml-3'>
-									Recomendado
-								</span>
-							</p>
-							<p className='text-xs text-stone-500'>
-								Entrega en 2-4 días hábiles. Incluye seguimiento y
-								notificaciones.
-							</p>
-						</div>
-
-						<div className='p-2'>
-							<FaFedex size={50} />
-						</div>
-					</label>
-
-					<label
-						className={`flex gap-4 items- center bg-white rounded-xl p-3 cursor-pointer border ${
-							delivery === 'free'
-								? 'border-black'
-								: 'border-transparent'
-						}`}
-					>
-						<div className='flex items-center'>
-							<input
-								name='free'
-								type='radio'
-								className='hidden'
-								onChange={() => {
-									setDelivery('free');
-								}}
-								value={delivery}
-								checked={delivery === 'free'}
-							/>
-
-							<span
-								className={`h-4 w-4 rounded-full border  flex items-center justify-center  ${
-									delivery === 'free'
-										? 'bg-black border-transparent'
-										: 'bg-white border-stone-300'
-								}`}
-							>
-								{delivery === 'free' && (
-									<span className='h-1.5 w-1.5 rounded-full bg-white'></span>
-								)}
-							</span>
-						</div>
-
-						<div className='space-y-2 flex-1'>
-							<p className='font-semibold text-sm'>Entrega Gratis</p>
-							<p className='text-xs text-stone-500'>
-								Entrega en 5-7 días hábiles. Sin seguimiento.
-							</p>
-						</div>
-
-						<div className='p-2 '>
-							<FaDhl size={50} />
-						</div>
-					</label>
+					<RadioInputDelivery
+						register={register}
+						value='free'
+						delivery={delivery}
+					/>
 				</div>
 			</section>
 
@@ -133,13 +94,13 @@ export const CheckoutPage = () => {
 				</h2>
 
 				<div className='flex flex-col gap-2'>
-					<label className='font-medium text-sm' htmlFor='email'>
-						Correo electrónico:
-					</label>
-					<input
+					<InputCheckout
+						register={register}
+						name='email'
+						label='Correo Electrónico'
 						type='email'
-						id='email'
-						className='border border-stone-300 px-3 py-2 text-sm rounded-md outline-none'
+						placeholder='Ejem: correo@gmail.com'
+						error={errors.email?.message}
 					/>
 				</div>
 
@@ -148,62 +109,17 @@ export const CheckoutPage = () => {
 						Seleccione método de pago:
 					</span>
 					<div className='flex gap-6'>
-						<label
-							className={`flex flex-col gap-1.5 flex-1 border p-4 rounded-xl cursor-pointer ${
-								methodPayment === 'card'
-									? 'border-black'
-									: 'border-stone-300'
-							} `}
-						>
-							<input
-								type='radio'
-								className='hidden'
-								onChange={() => {
-									setMethodPayment('card');
-								}}
-								value={methodPayment}
-								checked={methodPayment === 'card'}
-							/>
+						<RadioInputPaymentMethod
+							register={register}
+							value='card'
+							paymentMethod={methodPayment}
+						/>
 
-							<FaCreditCard />
-							<span
-								className={`text-xs font-medium ${
-									methodPayment === 'card'
-										? 'text-black'
-										: 'text-stone-500'
-								}`}
-							>
-								Tarjeta Débito / Crédito
-							</span>
-						</label>
-						<label
-							className={`flex flex-col gap-1.5 flex-1 border p-4 rounded-xl cursor-pointer ${
-								methodPayment === 'bank'
-									? 'border-black'
-									: 'border-stone-300'
-							} `}
-						>
-							<input
-								type='radio'
-								className='hidden'
-								onChange={() => {
-									setMethodPayment('bank');
-								}}
-								value={methodPayment}
-								checked={methodPayment === 'bank'}
-							/>
-
-							<BsBank2 />
-							<span
-								className={`text-xs font-medium ${
-									methodPayment === 'bank'
-										? 'text-black'
-										: 'text-stone-500'
-								}`}
-							>
-								Cuenta Bancaria
-							</span>
-						</label>
+						<RadioInputPaymentMethod
+							register={register}
+							value='bank'
+							paymentMethod={methodPayment}
+						/>
 					</div>
 				</div>
 
@@ -211,46 +127,66 @@ export const CheckoutPage = () => {
 				{methodPayment === 'card' ? (
 					<div className='flex flex-col gap-2'>
 						<label className='flex flex-col gap-1'>
-							<span className='text-sm text-stone-500'>
-								Nombre en la tarjeta
-							</span>
-							<input
+							<InputCheckout
+								label='Nombre en la tarjeta'
+								name='card.name'
 								type='text'
-								className='border border-stone-300 p-2 rounded-md'
+								register={register}
+								error={errors.card?.name?.message}
 							/>
 						</label>
 
 						<label className='flex flex-col gap-1'>
-							<span className='text-sm text-stone-500'>
-								Número de tarjeta
-							</span>
-							<input
+							<InputCheckout
+								label='Numero de tarjeta'
+								name='card.number'
 								type='text'
-								className='border border-stone-300 p-2 rounded-md'
+								register={register}
+								error={errors.card?.number?.message}
+								onChangeOverride={e => {
+									const value = e.target.value.replace(/\D/g, '');
+									e.target.value = (
+										value.match(/.{1,4}/g)?.join(' ') ?? ''
+									).substring(0, 19);
+								}}
 							/>
 						</label>
 
 						<div className='flex gap-2'>
 							<label className='flex flex-col gap-1 flex-1'>
-								<span className='text-sm text-stone-500'>
-									Fecha de expiración
-								</span>
-								<input
+								<InputCheckout
+									label='Fecha de expiración'
 									type='text'
-									value={expirationDate}
-									onChange={handleExpirationInput}
+									register={register}
+									name='card.expiration'
+									error={errors.card?.expiration?.message}
 									placeholder='MM/AA'
-									maxLength={5}
-									className='border border-stone-300 p-2 rounded-md focus:outline-none focus:ring-1 focus:ring-slate-900'
+									onChangeOverride={e => {
+										const value = e.target.value.replace(/\D/g, '');
+										e.target.value = (
+											value.match(/.{1,2}/g)?.join('/') ?? ''
+										).substring(0, 5);
+									}}
 								/>
 							</label>
 
 							<label className='flex flex-col gap-1 flex-1'>
-								<span className='text-sm text-stone-500'>CVC</span>
-								<input
+								<InputCheckout
+									label='CVC'
 									type='password'
+									register={register}
+									name='card.cvc'
+									error={errors.card?.cvc?.message}
 									maxLength={3}
-									className='border border-stone-300 p-2 rounded-md'
+									onChangeOverride={
+										// Solo permitir números
+										e => {
+											e.target.value = e.target.value.replace(
+												/\D/g,
+												''
+											);
+										}
+									}
 								/>
 							</label>
 						</div>
@@ -258,22 +194,23 @@ export const CheckoutPage = () => {
 				) : (
 					<div className='flex flex-col gap-2'>
 						<label className='flex flex-col gap-1'>
-							<span className='text-sm text-stone-500'>
-								Nombre de propietario:
-							</span>
-							<input
+							<InputCheckout
+								label='Nombre de Propietario'
 								type='text'
-								className='border border-stone-300 p-2 rounded-md'
+								register={register}
+								name='bank.nameAccount'
+								error={errors.bank?.nameAccount?.message}
 							/>
 						</label>
 
 						<label className='flex flex-col gap-1'>
-							<span className='text-sm text-stone-500'>
-								Cuenta bancaria:
-							</span>
-							<input
+							<InputCheckout
+								label='Cuenta bancaria'
 								type='text'
-								className='border border-stone-300 p-2 rounded-md'
+								register={register}
+								name='bank.accountNumber'
+								error={errors.bank?.accountNumber?.message}
+								maxLength={10}
 							/>
 						</label>
 					</div>
