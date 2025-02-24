@@ -1,6 +1,6 @@
 import { FaHome, FaShoppingCart } from 'react-icons/fa';
 import { FaFileWaveform } from 'react-icons/fa6';
-// import { MdCampaign } from 'react-icons/md';
+import { MdCampaign } from 'react-icons/md';
 import { NavLink } from 'react-router';
 
 const navLinks = [
@@ -10,11 +10,11 @@ const navLinks = [
 		label: 'Checkout',
 		icon: <FaShoppingCart size={18} />,
 	},
-	// {
-	// 	to: '/dashboard/campaign',
-	// 	label: 'Campaña',
-	// 	icon: <MdCampaign size={22} />,
-	// },
+	{
+		to: '/dashboard/campaign',
+		label: 'Campaña',
+		icon: <MdCampaign size={22} />,
+	},
 ];
 
 export const Sidebar = () => {

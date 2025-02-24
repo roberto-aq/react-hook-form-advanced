@@ -1,6 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router';
 import { DashboardLayout } from '../layouts/DashboardLayout';
-import { CheckoutPage, HomePage } from '../pages';
+import { CampaignPage, CheckoutPage, HomePage } from '../pages';
 
 export const AppRouter = () => {
 	return (
@@ -12,6 +12,7 @@ export const AppRouter = () => {
 			<Route path='/dashboard' element={<DashboardLayout />}>
 				<Route index element={<HomePage />} />
 				<Route path='checkout' element={<CheckoutPage />} />
+				<Route path='campaign' element={<CampaignPage />} />
 			</Route>
 		</Routes>
 	);
